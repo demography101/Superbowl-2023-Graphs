@@ -19,7 +19,8 @@ library(ggrepel)
 library(ggimage)
 library(RCurl)
 
-nfl <- read_excel("~/nfl_web_scrape.xlsx")
+# Upload Excel sheet
+nfl <- read_excel("~/nfl_web_scrape.xlsx")    
 nfl <- nfl %>% mutate(team_code = case_when(Team == "Kansas City Chiefs" ~ "KC", 
                                             Team == "Philadelphia Eagles" ~ "PHI"))
 
@@ -50,14 +51,17 @@ ggplot(exp, aes(x=Exp, y=total, fill = Team)) +
 
 
 # Age Groups
+# Upload NFL Logos
 url.logo <- getURL("https://raw.githubusercontent.com/statsbylopez/BlogPosts/master/nfl_teamlogos.csv")
 df.logos <- read.csv(text = url.logo)
 
+#Merge logos with excel data
 age <- nfl %>% 
   left_join(df.logos, by = "team_code")
 
 age <- age %>% group_by(Age) %>%
-                 mutate(Age_Group = case_when(Age == 21 ~ "20-24", Age == 22 ~ "20-24",
+                 # Assign the ages into age groups
+                 mutate(Age_Group = case_when(Age == 21 ~ "20-24", Age == 22 ~ "20-24", 
                                               Age == 23 ~ "20-24", Age == 24 ~ "20-24",
                                               Age == 25 ~ "25-29", Age == 26 ~ "25-29",
                                               Age == 27 ~ "25-29", Age == 28 ~ "25-29",
@@ -70,6 +74,7 @@ age <- age %>% group_by(Age) %>%
                         mutate(total = sum(Count)) %>% 
                         select(Team, team_code, Age_Group, total) %>% distinct()
 
+# Sequence of numbers allows logos to look stacked
 KC1 <- data.frame(Team = "Kansas City Chiefs",                    
                   team_code = "KC",
                   AgeGroup = rep(c("20-24"), each=20),
