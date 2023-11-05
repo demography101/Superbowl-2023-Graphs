@@ -1,0 +1,132 @@
+---
+title: "Untitled"
+output: html_document
+date: "2023-09-25"
+---
+
+```{r setup, include=FALSE}
+install.packages("readxl")
+install.packages("dplyr")
+install.packages("ggrepel")
+install.packages("ggimage")
+install.packages("RCurl")
+library(readxl)
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(ggrepel)
+library(ggimage)
+library(RCurl)
+
+nfl <- read_excel("~/nfl_web_scrape.xlsx")
+nfl <- nfl %>% mutate(team_code = case_when(Team == "Kansas City Chiefs" ~ "KC", 
+                                            Team == "Philadelphia Eagles" ~ "PHI"))
+
+# Years of Experience
+exp <- nfl %>% group_by(Exp) %>%
+               mutate(Count = 1) %>%
+               group_by(team_code, Exp) %>%
+               mutate(total = sum(Count)) %>% 
+               select(Team, team_code, Exp, total) %>%
+               filter(Exp > 0) %>% distinct()
+
+ggplot(exp, aes(x=Exp, y=total, fill = Team)) + 
+       geom_bar(position="dodge", stat="identity") +
+   scale_y_continuous(limits = c(0,10), 
+                     breaks = c(0,5,10)) +
+  scale_x_discrete(limits = c("1","2","3","4","5","6","7","8","9","10",
+                              "11","12","13","14")) +
+  xlab("Years of experience") + ylab("Number of Players") + 
+  scale_fill_manual(values = c("#8B0000", "#388E8E"))+
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12),
+        axis.title = element_text(size = 15),
+        plot.title = element_text(size = 15, hjust=0.5)) +
+  labs(title = "NFL Super Bowl LVII Players Years of Experience", 
+       caption = "Data: ESPN") 
+
+
+
+
+# Age Groups
+url.logo <- getURL("https://raw.githubusercontent.com/statsbylopez/BlogPosts/master/nfl_teamlogos.csv")
+df.logos <- read.csv(text = url.logo)
+
+age <- nfl %>% 
+  left_join(df.logos, by = "team_code")
+
+age <- age %>% group_by(Age) %>%
+                 mutate(Age_Group = case_when(Age == 21 ~ "20-24", Age == 22 ~ "20-24",
+                                              Age == 23 ~ "20-24", Age == 24 ~ "20-24",
+                                              Age == 25 ~ "25-29", Age == 26 ~ "25-29",
+                                              Age == 27 ~ "25-29", Age == 28 ~ "25-29",
+                                              Age == 29 ~ "25-29", Age == 30 ~ "30-34",
+                                              Age == 31 ~ "30-34", Age == 32 ~ "30-34",
+                                              Age == 33 ~ "30-34", Age == 34 ~ "30-34",
+                                              Age == 35 ~ "35-39", Age == 36 ~ "35-39"),
+                        Count = 1) %>%
+                        group_by(team_code, Age_Group) %>%
+                        mutate(total = sum(Count)) %>% 
+                        select(Team, team_code, Age_Group, total) %>% distinct()
+
+KC1 <- data.frame(Team = "Kansas City Chiefs",                    
+                  team_code = "KC",
+                  AgeGroup = rep(c("20-24"), each=20),
+                  Y = seq(1,20))
+KC2 <- data.frame(Team = "Kansas City Chiefs",                    
+                  team_code = "KC",
+                  AgeGroup = rep(c("25-29"), each=25),
+                  Y = seq(1,25))
+KC3 <- data.frame(Team = "Kansas City Chiefs",                    
+                  team_code = "KC",
+                  AgeGroup = rep(c("30-34"), each=7),
+                  Y = seq(1,7))
+
+KC_data <- rbind(KC1, KC2, KC3)
+
+PH1 <- data.frame(Team = "Philadelphia Eagles",                    
+                  team_code = "PHI",
+                  AgeGroup = rep(c("20-24"), each=19),
+                  Y = seq(1,19))
+PH2 <- data.frame(Team = "Philadelphia Eagles",                    
+                  team_code = "PHI",
+                  AgeGroup = rep(c("25-29"), each=23),
+                  Y = seq(1,23))
+PH3 <- data.frame(Team = "Philadelphia Eagles",                    
+                  team_code = "PHI",
+                  AgeGroup = rep(c("30-34"), each=9),
+                  Y = seq(1,9))
+PH4 <- data.frame(Team = "Philadelphia Eagles",                    
+                  team_code = "PHI",
+                  AgeGroup = rep(c("35-39"), each=2),
+                  Y = seq(1,2))
+
+PH_data <- rbind(PH1, PH2, PH3, PH4)
+
+nfl_data <- rbind(KC_data, PH_data)
+
+nfl_data <- nfl_data %>% 
+  left_join(df.logos, by = "team_code")
+
+ggplot(nfl_data, aes(AgeGroup, Y)) + 
+  geom_image(aes(image = url), size = 0.15, 
+             position=position_dodge(width=0.5)) + 
+  #scale_y_continuous(limits = c(0,43), 
+   #                 breaks = c(0,10,20,30)) +
+  xlab("Age Group") + ylab("Number of Players") + 
+  theme(panel.background = element_rect(fill = "forestgreen", 
+                                        colour = "forestgreen"), 
+             panel.grid.minor.y = element_blank(),
+             panel.grid.major.y = element_blank(),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 15),
+        plot.title = element_text(size = 15, hjust=0.5)) +
+  labs(title = "NFL Super Bowl LVII Players' Age Groups", 
+       caption = "Data: ESPN") 
+
+
+
+```
+
+
