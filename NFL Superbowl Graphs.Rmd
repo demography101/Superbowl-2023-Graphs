@@ -1,10 +1,4 @@
----
-title: "Untitled"
-output: html_document
-date: "2023-09-25"
----
-
-```{r setup, include=FALSE}
+```{r}
 install.packages("readxl")
 install.packages("dplyr")
 install.packages("ggrepel")
